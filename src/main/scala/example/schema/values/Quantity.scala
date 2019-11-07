@@ -1,4 +1,4 @@
-package schema.values
+package example.schema.values
 
 import eu.timepit.refined.api.Refined
 import eu.timepit.refined.numeric.Positive

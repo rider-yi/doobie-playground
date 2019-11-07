@@ -1,3 +1,5 @@
+package example
+
 import cats.effect.IO
 import com.twitter.util.{Future, Promise}
 

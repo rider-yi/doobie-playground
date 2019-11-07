@@ -1,4 +1,4 @@
-package schema.values
+package example.schema.values
 
 /**
   * 注文ID

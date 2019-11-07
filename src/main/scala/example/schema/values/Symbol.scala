@@ -1,4 +1,4 @@
-package schema.values
+package example.schema.values
 
 import enumeratum.values.{StringDoobieEnum, StringEnum, StringEnumEntry}
 

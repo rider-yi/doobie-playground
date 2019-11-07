@@ -1,6 +1,6 @@
-package schema
+package example.schema
 
-import schema.values._
+import example.schema.values._
 
 /**
   * 注文テーブル

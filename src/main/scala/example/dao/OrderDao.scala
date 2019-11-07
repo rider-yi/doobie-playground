@@ -1,14 +1,14 @@
-package dao
+package example.dao
 
-import _root_.EnrichIO._
 import cats.data.NonEmptyList
 import cats.effect.IO
 import com.twitter.util.Future
 import doobie._
 import doobie.implicits._
 import doobie.util.transactor.Transactor
-import schema.Order
-import schema.values.OrderId
+import example.EnrichIO._
+import example.schema.Order
+import example.schema.values.OrderId
 
 class OrderDao(implicit xa: Transactor[IO]) {
   private def create(order: Order): Future[Unit] = {
