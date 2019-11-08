@@ -1,42 +1,35 @@
 package example.dao
 
 import cats.data.NonEmptyList
-import cats.effect.IO
-import com.twitter.util.Future
+import cats.implicits._
 import doobie._
 import doobie.implicits._
 import doobie.refined.implicits._
-import doobie.util.transactor.Transactor
-import example.EnrichIO._
 import example.schema.Order
 import example.schema.values.OrderId
 
-class OrderDao(implicit xa: Transactor[IO]) {
-  def create(order: Order): Future[Unit] = {
+object OrderDao {
+  def create(order: Order): ConnectionIO[Unit] = {
     import order._
-    val q = sql"""|INSERT INTO `order` (order_id, symbol, side, quantity)
-                  |VALUES (${id}, ${symbol}, ${side}, ${quantity})"""
-    q.stripMargin.update.run
-      .transact(xa)
-      .runToFuture
-      .unit
+    sql"""|INSERT INTO `order` (order_id, symbol, side, quantity)
+          |VALUES (${id}, ${symbol}, ${side}, ${quantity})
+          |""".stripMargin.update.run.void
   }
 
-  def findBy(orderId: OrderId): Future[Order] = {
+  def batchCreate(orders: NonEmptyList[Order]): ConnectionIO[Unit] = {
+    val sql = "INSERT INTO `order` (order_id, symbol, side, quantity) VALUES (?, ?, ?, ?)"
+    Update[Order](sql).updateMany(orders).void
+  }
+
+  def findBy(orderId: OrderId): ConnectionIO[Order] = {
     sql"SELECT order_id, symbol, side, quantity FROM `order` WHERE order_id = ${orderId}"
       .query[Order]
       .unique
-      .transact(xa)
-      .runToFuture
   }
 
-  def selectBy(orderIds: NonEmptyList[OrderId]): Future[List[Order]] = {
-    val q =
-      fr"SELECT order_id, symbol, side, quantity FROM `order` WHERE" ++
-        Fragments.in(fr"order_id", orderIds) ++ fr"ORDER BY order_id"
-    q.query[Order]
-      .to[List]
-      .transact(xa)
-      .runToFuture // .to[List] の代わりに .nel, .stream (fs2のStream)などを使うこともできる
+  def selectNelBy(orderIds: NonEmptyList[OrderId]): ConnectionIO[NonEmptyList[Order]] = {
+    val q = fr"SELECT order_id, symbol, side, quantity FROM `order` WHERE" ++
+      Fragments.in(fr"order_id", orderIds) ++ fr"ORDER BY order_id"
+    q.query[Order].nel // レコードが無い場合はエラーで良い場合は .nel を使う。
   }
 }
